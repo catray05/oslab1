@@ -5,8 +5,8 @@ malicious_dir="$2"
 interval_secs="$3"
 
 scan(){
-	for file in "$dir"/*;do
-		if [[ $file == *.exe || $file == *.bat || $file == *.vbs || $file == *.scr || $file == *.ps1 ]] || grep -Ei -w 'virus|trojan|malware|worm|ransomware| $file
+	for file in "$1"/*;do
+		if [[ "$file" == *.exe || "$file" == *.bat || "$file" == *.vbs || "$file" == *.scr || "$file" == *.ps1 ]] || grep -Ei -w 'virus|trojan|malware|worm|ransomware| $file
 		then
 			echo "$file is malicious and it is DELETED"
 			cp "$file" "$malicious_dir"
@@ -15,14 +15,14 @@ scan(){
 	done
 }
 
-
+scan "$dir"
 ls -l "$dir" > directory-info.last
 while true
 do
 	ls -l "$dir" > directory-info.new
 	if ! cmp directory-info.new directory-info.last
 	then
-		scan
+		scan "$dir"
 		cp directory-info.new directory-info.last
 	else
 		sleep "$interval_secs"
