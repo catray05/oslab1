@@ -25,6 +25,7 @@ while true;do
 	case "$choice" in
 		1)
 			mv "$selected" "$dir"
+			echo "$selected" >> whitelist
 			echo "Restored $selected to $dir."
 			;;
 		2)
