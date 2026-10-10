@@ -13,16 +13,14 @@ oslab1/
 ├── antivirus-cron.sh
 ├── Makefile
 ├── README.md
-├── dir/
-└── malicious_dir/
+└── whitelist
 ```
 
 * `antivirusd.sh`: Scans the monitored directory and quarantines flagged files.
 * `restore.sh`: Allows users to restore quarantined files or permanently delete them.
 * `antivirus-cron.sh`: Performs a single scan for scheduled cron execution.
 * `Makefile`: Creates the quarantine directory and provides commands to run both scripts.
-* `dir/`: The directory monitored by the antivirus.
-* `malicious_dir/`: Stores quarantined files.
+* `whitelist`: Stores the paths of files identified as false positives.
 
 ## 2. Prerequisites
 
@@ -138,3 +136,25 @@ The five-field cron expression below illustrates 12:31 a.m. on Fridays that fall
 ```
 
 On many cron implementations, the day-of-month and day-of-week fields are evaluated as alternatives, so this expression can run on additional dates. Use a date-checking wrapper if the job must run **only on the third Friday**. Replace `command` with the command to be scheduled.
+
+## 5. Whitelist
+
+The project uses a file named `whitelist` to remember files that have been identified as false positives. This prevents files that have been restored from being flagged again during future scans.
+
+### How a file is added
+
+When the user runs `make restore` and chooses option 1 to restore a quarantined file, `restore.sh` moves the file back into the monitored directory and appends its path to `whitelist`. Each entry is stored on a separate line, for example:
+
+```text
+dir/keyword.txt
+```
+
+The `whitelist` file is stored in the project directory and persists after the daemon stops or restarts. Do not delete or clear this file if the saved whitelist entries need to be preserved.
+
+### How scans check the whitelist
+
+Before checking a file's extension or contents, both `antivirusd.sh` and `antivirus-cron.sh` search `whitelist` for an exact match to the file's path. If a match is found, the scanner skips that file. Otherwise, it checks the file against the configured malicious extensions and keywords.
+
+The scanners use `grep -Fxq` for this check: `-F` treats the path as literal text and `-q` suppresses output.
+
+This whitelist is a simple local record of files marked as false positives, not a general malware-detection system.
