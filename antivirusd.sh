@@ -6,11 +6,11 @@ interval_secs="$3"
 
 scan(){
 	for file in "$1"/*;do
-		if grep -q  "$file" whitelist
+		if grep -Fq  "$file" whitelist
 		then
 			continue
 		fi
-		if [[ "$file" == *.exe || "$file" == *.bat || "$file" == *.vbs || "$file" == *.scr || "$file" == *.ps1 ]] || grep -Eiq -w 'virus|trojan|malware|worm|ransomware' "$file"
+		if [[ "$file" == *.exe || "$file" == *.bat || "$file" == *.vbs || "$file" == *.scr || "$file" == *.ps1 ]] || grep -Eiq 'virus|trojan|malware|worm|ransomware' "$file"
 		then
 			echo "$file is malicious and it is DELETED"
 			cp "$file" "$malicious_dir"
@@ -27,7 +27,7 @@ do
 	if ! cmp directory-info.new directory-info.last
 	then
 		scan "$dir"
-		cp directory-info.new directory-info.last
+		ls -l "$dir" > directory-info.last
 	else
 		sleep "$interval_secs"
 	fi
