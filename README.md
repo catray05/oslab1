@@ -10,6 +10,7 @@ This project implements a simple antivirus daemon using Bash scripts. It scans f
 oslab1/
 ├── antivirusd.sh
 ├── restore.sh
+├── antivirus-cron.sh
 ├── Makefile
 ├── README.md
 ├── dir/
@@ -18,6 +19,7 @@ oslab1/
 
 * `antivirusd.sh`: Scans the monitored directory and quarantines flagged files.
 * `restore.sh`: Allows users to restore quarantined files or permanently delete them.
+* `antivirus-cron.sh`: Performs a single scan for scheduled cron execution.
 * `Makefile`: Creates the quarantine directory and provides commands to run both scripts.
 * `dir/`: The directory monitored by the antivirus.
 * `malicious_dir/`: Stores quarantined files.
@@ -84,3 +86,55 @@ The flagged file extensions are defined in the `scan()` function in `antivirusd.
 The flagged keywords are also checked in the `scan()` function using `grep`. The current keyword list includes terms such as `virus`, `trojan`, `malware`, `worm`, and `ransomware`.
 
 These checks are simple indicators and do not constitute comprehensive malware detection.
+## 5. Cron Job (Bonus)
+
+The `antivirus-cron.sh` script performs one scan of the monitored directory and moves flagged files into `malicious_dir`. Unlike `antivirusd.sh`, it does not run continuously. Cron is used to schedule repeated scans.
+
+### Prerequisites
+
+- Linux with Bash and cron installed and running.
+- `antivirus-cron.sh` and the project files downloaded.
+- A monitored directory named `dir`.
+- A quarantine directory named `malicious_dir`.
+
+### Step 1: Prepare the directories
+
+From the project directory, run:
+
+```bash
+mkdir -p dir malicious_dir
+```
+
+### Step 2: Configure the cron job
+
+Open the current user's crontab:
+
+```bash
+crontab -e
+```
+
+Add the following line, replacing `/path/to/oslab1` with the absolute path to the project directory:
+
+```cron
+* * * * * sleep 23; /bin/bash /path/to/oslab1/antivirus-cron.sh /path/to/oslab1/dir /path/to/oslab1/malicious_dir
+```
+
+This schedules a scan every minute, delayed by approximately 23 seconds. Standard cron uses five time fields and does not directly support seconds.
+
+Save and exit the editor. To verify the saved schedule, run:
+
+```bash
+crontab -l
+```
+
+To stop the scheduled scans, run `crontab -e` and remove the added line.
+
+### Step 3: Third Friday schedule example
+
+The five-field cron expression below illustrates 12:31 a.m. on Fridays that fall between the 15th and 21st of the month:
+
+```cron
+31 0 15-21 * 5 command
+```
+
+On many cron implementations, the day-of-month and day-of-week fields are evaluated as alternatives, so this expression can run on additional dates. Use a date-checking wrapper if the job must run **only on the third Friday**. Replace `command` with the command to be scheduled.
